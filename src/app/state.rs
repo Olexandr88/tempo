@@ -1,6 +1,7 @@
 use crate::context::{
-    BasePeerAddress, BasePeerSet, BaseProposalPart, BaseValue, MalachiteContext, ValueIdWrapper,
+    BasePeerAddress, BasePeerSet, MalachiteContext,
 };
+use crate::{ProposalPart, Value};
 use crate::height::Height;
 use crate::provider::Ed25519Provider;
 use crate::store::Store;
@@ -228,9 +229,7 @@ impl State {
         sleep(Duration::from_millis(100)).await;
 
         // Create a simple value - in real implementation this would be a proper block
-        let value = BaseValue {
-            data: vec![1, 2, 3, 4], // Placeholder data
-        };
+        let value = Value::new(bytes::Bytes::from(vec![1, 2, 3, 4])); // Placeholder data
 
         info!("Proposed value for height {} round {}", height, round);
 
@@ -241,7 +240,7 @@ impl State {
     pub async fn received_proposal_part(
         &self,
         from: MalachitePeerId,
-        _part: StreamMessage<BaseProposalPart>,
+        _part: StreamMessage<ProposalPart>,
     ) -> Result<Option<ProposedValue<MalachiteContext>>> {
         // For now, just return None - this would normally reassemble streaming proposals
         info!("Received proposal part from {}", from);
@@ -253,7 +252,7 @@ impl State {
         &self,
         value: LocallyProposedValue<MalachiteContext>,
         _pol_round: Round,
-    ) -> impl Iterator<Item = StreamMessage<BaseProposalPart>> {
+    ) -> impl Iterator<Item = StreamMessage<ProposalPart>> {
         // For now, return empty iterator - this would normally split proposal into parts
         info!("Streaming proposal for height {}", value.height);
         std::iter::empty()
@@ -484,7 +483,7 @@ pub enum ConsensusStep {
 
 #[derive(Debug, Clone)]
 pub struct DecidedValue {
-    pub value: BaseValue,
+    pub value: Value,
     pub certificate: CommitCertificate<MalachiteContext>,
 }
 
@@ -496,16 +495,15 @@ pub fn reload_log_level(_height: Height, _round: Round) {
 }
 
 /// Encode a value to its byte representation
-pub fn encode_value(_value: &BaseValue) -> Bytes {
+pub fn encode_value(_value: &Value) -> Bytes {
     // For now, return empty bytes - this would serialize the value
     Bytes::new()
 }
 
 /// Decode a value from its byte representation
-pub fn decode_value(_bytes: Bytes) -> Option<BaseValue> {
+pub fn decode_value(_bytes: Bytes) -> Option<Value> {
     // For now, return None - this would deserialize the value
     None
 }
 
 // Type alias for compatibility
-pub type ValueId = ValueIdWrapper;
