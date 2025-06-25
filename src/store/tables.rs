@@ -1,7 +1,8 @@
 //! Database table definitions for consensus data.
 
 use crate::codec::{decode_commit_certificate, encode_commit_certificate, ProtoCodec};
-use crate::context::{BaseValue, MalachiteContext};
+use crate::context::MalachiteContext;
+use crate::Value;
 use crate::height::Height;
 use malachitebft_app_channel::app::types::ProposedValue;
 use malachitebft_codec::Codec;
@@ -38,12 +39,11 @@ pub struct ProposalKey {
 }
 
 impl ProposalKey {
-    pub fn new(height: Height, round: Round, value_id: &crate::ValueIdWrapper) -> Self {
+    pub fn new(height: Height, round: Round, value_id: &crate::ValueId) -> Self {
         let mut value_id_hash = [0u8; 32];
-        // Use the first 32 bytes of the value ID as the hash
-        let id_bytes = value_id.as_bytes();
-        let len = id_bytes.len().min(32);
-        value_id_hash[..len].copy_from_slice(&id_bytes[..len]);
+        // Convert the u64 value ID to bytes for the hash
+        let id_bytes = value_id.as_u64().to_be_bytes();
+        value_id_hash[..8].copy_from_slice(&id_bytes);
 
         Self {
             height: height.0,
@@ -56,7 +56,7 @@ impl ProposalKey {
 /// Stored decided value with certificate
 #[derive(Debug, Clone)]
 pub struct DecidedValue {
-    pub value: BaseValue,
+    pub value: Value,
     pub certificate: CommitCertificate<MalachiteContext>,
 }
 
@@ -175,7 +175,7 @@ impl Compress for DecidedValue {
         let mut data = Vec::new();
 
         // Encode value
-        let value_bytes = self.value.data.clone();
+        let value_bytes = self.value.extensions.to_vec();
         let value_len = value_bytes.len() as u32;
         data.extend_from_slice(&value_len.to_le_bytes());
         data.extend_from_slice(&value_bytes);
@@ -237,7 +237,7 @@ impl Decompress for DecidedValue {
             decode_commit_certificate(cert_proto).map_err(|_| DatabaseError::Decode)?;
 
         Ok(DecidedValue {
-            value: BaseValue { data: value_data },
+            value: Value::new(bytes::Bytes::from(value_data)),
             certificate,
         })
     }

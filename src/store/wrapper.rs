@@ -1,9 +1,9 @@
 //! Store wrapper for easier integration with the State module.
 
 use super::RethStore;
-use crate::context::{BaseValue, MalachiteContext};
+use crate::context::MalachiteContext;
 use crate::height::Height;
-use crate::ValueIdWrapper;
+use crate::{Value, ValueId};
 use eyre::Result;
 use malachitebft_app_channel::app::types::ProposedValue;
 use malachitebft_core_types::{CommitCertificate, Round};
@@ -49,7 +49,7 @@ impl Store {
     pub async fn store_decided_value(
         &self,
         certificate: &CommitCertificate<MalachiteContext>,
-        value: BaseValue,
+        value: Value,
     ) -> Result<()> {
         self.inner.store_decided_value(certificate, value).await
     }
@@ -76,7 +76,7 @@ impl Store {
         &self,
         height: Height,
         round: Round,
-        value_id: ValueIdWrapper,
+        value_id: ValueId,
     ) -> Result<Option<ProposedValue<MalachiteContext>>> {
         self.inner
             .get_undecided_proposal(height, round, value_id)
@@ -97,7 +97,7 @@ trait StoreOps {
     async fn store_decided_value(
         &self,
         certificate: &CommitCertificate<MalachiteContext>,
-        value: BaseValue,
+        value: Value,
     ) -> Result<()>;
     async fn get_undecided_proposals(
         &self,
@@ -112,7 +112,7 @@ trait StoreOps {
         &self,
         height: Height,
         round: Round,
-        value_id: ValueIdWrapper,
+        value_id: ValueId,
     ) -> Result<Option<ProposedValue<MalachiteContext>>>;
     async fn verify_tables(&self) -> Result<()>;
 }
@@ -135,7 +135,7 @@ where
     async fn store_decided_value(
         &self,
         certificate: &CommitCertificate<MalachiteContext>,
-        value: BaseValue,
+        value: Value,
     ) -> Result<()> {
         self.store_decided_value(certificate, value)
             .await
@@ -165,7 +165,7 @@ where
         &self,
         height: Height,
         round: Round,
-        value_id: ValueIdWrapper,
+        value_id: ValueId,
     ) -> Result<Option<ProposedValue<MalachiteContext>>> {
         self.get_undecided_proposal(height, round, value_id)
             .await

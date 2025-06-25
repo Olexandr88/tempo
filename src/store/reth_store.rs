@@ -1,11 +1,10 @@
 //! RethStore implementation that uses reth's database infrastructure for persistent storage.
 
-use crate::context::{BaseValue, MalachiteContext};
+use crate::context::MalachiteContext;
 use crate::height::Height;
-use crate::ValueIdWrapper;
+use crate::{Value, ValueId};
 use eyre::Result;
 use malachitebft_app_channel::app::types::ProposedValue;
-use malachitebft_core_types::Value as MalachiteValue;
 use malachitebft_core_types::{CommitCertificate, Round};
 use reth_db_api::cursor::{DbCursorRO, DbCursorRW};
 use reth_db_api::transaction::{DbTx, DbTxMut};
@@ -146,7 +145,7 @@ where
     pub async fn store_decided_value(
         &self,
         certificate: &CommitCertificate<MalachiteContext>,
-        value: BaseValue,
+        value: Value,
     ) -> Result<(), StoreError> {
         let mut provider_rw = self.provider_rw()?;
 
@@ -246,7 +245,7 @@ where
         &self,
         height: Height,
         round: Round,
-        value_id: ValueIdWrapper,
+        value_id: ValueId,
     ) -> Result<Option<ProposedValue<MalachiteContext>>, StoreError> {
         let provider = self.provider()?;
         let tx = provider.tx_ref();
@@ -275,7 +274,7 @@ where
     /// Get an undecided proposal by value ID (searches all heights and rounds)
     pub async fn get_undecided_proposal_by_value_id(
         &self,
-        value_id: ValueIdWrapper,
+        value_id: ValueId,
     ) -> Result<Option<ProposedValue<MalachiteContext>>, StoreError> {
         let provider = self.provider()?;
         let tx = provider.tx_ref();
