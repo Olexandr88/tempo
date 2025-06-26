@@ -39,6 +39,7 @@
 //! - Integrates with Reth's P2P network for transaction gossip
 //! - Utilizes Reth's EVM for transaction execution
 
+pub mod config_loader;
 pub mod node;
 pub mod state;
 
