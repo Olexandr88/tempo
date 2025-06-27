@@ -722,7 +722,7 @@ impl State {
 
     /// Get the parent hash for a given height
     async fn get_parent_hash(&self, height: Height) -> Result<B256> {
-        if height.as_u64() == 0 {
+        if height.as_u64() == 1 {
             return Ok(self.genesis.genesis_hash);
         }
 
