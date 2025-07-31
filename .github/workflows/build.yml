@@ -8,7 +8,7 @@ jobs:
     name: Build
     runs-on: depot-ubuntu-24.04-16
     outputs:
-      artifact_id: ${{ steps.binary_upload.outputs.artifact-id }}
+      artifact_id: "${{ steps.binary_upload.outputs.artifact-id }}"
     steps:
     - uses: actions/checkout@v2
     - uses: rui314/setup-mold@v1
@@ -49,7 +49,7 @@ jobs:
     - name: Export vault password file
       working-directory: contrib/infra/ansible
       run: |
-        echo ${{secrets.ANSIBLE_VAULT_PASSWORD}} >> vault.key
+        echo -e "${{secrets.ANSIBLE_VAULT_PASSWORD}}" >> vault.key
     - name: Run playbook
       working-directory: contrib/infra/ansible
       run: |
