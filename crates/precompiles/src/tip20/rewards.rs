@@ -142,7 +142,9 @@ impl<'a, S: PrecompileStorageProvider> TIP20Token<'a, S> {
     /// the total reward rate and the time elapsed since the last update.
     /// Only processes rewards if there is an opted-in supply.
     pub fn accrue(&mut self, accrue_to_timestamp: U256) -> Result<()> {
-        let elapsed = accrue_to_timestamp - U256::from(self.get_last_update_time()?);
+        let elapsed = accrue_to_timestamp
+            .checked_sub(U256::from(self.get_last_update_time()?))
+            .ok_or(TempoPrecompileError::under_overflow())?;
         if elapsed.is_zero() {
             return Ok(());
         }
@@ -294,7 +296,9 @@ impl<'a, S: PrecompileStorageProvider> TIP20Token<'a, S> {
         self.accrue(current_time)?;
 
         let elapsed = if current_time > U256::from(stream.start_time) {
-            current_time - U256::from(stream.start_time)
+            current_time
+                .checked_sub(U256::from(stream.start_time))
+                .ok_or(TempoPrecompileError::under_overflow())?
         } else {
             U256::ZERO
         };

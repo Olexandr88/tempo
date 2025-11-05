@@ -8,7 +8,7 @@ pub use tempo_contracts::precompiles::{
 
 use crate::{
     DEFAULT_FEE_TOKEN,
-    error::Result,
+    error::{Result, TempoPrecompileError},
     storage::{PrecompileStorageProvider, StorageOps},
     tip_fee_manager::{
         amm::{PoolKey, TIPFeeAMM},
@@ -351,7 +351,12 @@ impl<'a, S: PrecompileStorageProvider> TipFeeManager<'a, S> {
     fn increment_collected_fees(&mut self, amount: U256) -> Result<()> {
         let slot = collected_fees_slot();
         let current_fees = self.sload(slot)?;
-        self.sstore(slot, current_fees + amount)
+        self.sstore(
+            slot,
+            current_fees
+                .checked_add(amount)
+                .ok_or(TempoPrecompileError::under_overflow())?,
+        )
     }
 
     /// Get collected fees
